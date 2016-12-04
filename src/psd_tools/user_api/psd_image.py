@@ -201,7 +201,7 @@ class Group(_RawLayer):
 
 class PSDImage(object):
     """ PSD image wrapper """
-
+    print ("new PSDImage")
     def __init__(self, decoded_data):
         self.header = decoded_data.header
         self.decoded_data = decoded_data
@@ -247,6 +247,11 @@ class PSDImage(object):
             psd_tools.reader.parse(fp, encoding)
         )
         return cls(decoded_data)
+
+    def get_pattern_image_data(self,pattern):
+        
+        return pattern.getImageData(self)
+
 
     def as_PIL(self):
         """
