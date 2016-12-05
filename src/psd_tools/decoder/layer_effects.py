@@ -81,6 +81,8 @@ class Pattern:
         self.id = id
         self.data = data
         self.size = w , h
+        self.width = w
+        self.height = h
 
     def getImageData(self,root):
 
@@ -174,7 +176,7 @@ def decode_pattern(patternData):
 
         # seek to expected ending of pattern
         fp.seek(start + patternLength)
-        
+
         if fp.tell() <= endOfPatterns-4:
             patternLength = read_fmt("I",fp)[0]
         else:
@@ -187,6 +189,124 @@ def decode_pattern(patternData):
 
     return patterns
 
+def readPathNumber(fp):
+    a = fp.read(1)[0] #@readByte()
+
+    arr = fp.read(3)
+    b1 = arr[0] << 16
+    b2 = arr[1] << 8
+    b3 = arr[2]
+    b = b1 | b2 | b3
+
+    return float(a) + float(b / pow(2, 24))
+
+class PathRecord:
+
+
+    def __init__(self, fp):
+        #print ("path record",fp)
+        self.fp = fp
+
+    def parse(self):
+
+        """
+        record types
+        0   Closed subpath length record
+        1   Closed subpath Bezier knot, linked
+        2   Closed subpath Bezier knot, unlinked
+        3   Open subpath length record
+        4   Open subpath Bezier knot, linked
+        5   Open subpath Bezier knot, unlinked
+        6   Path fill rule record
+        7   Clipboard record
+        8   Initial fill rule record
+        """
+
+        #self.recordType = @file.readShort()
+        fp = self.fp
+        self.recordType = read_fmt("h",fp)[0]
+
+        if self.recordType in [0,3]:
+            self._readPathRecord()
+        elif self.recordType in [1,2,4,5]:
+            self._readBezierPoint()
+        elif self.recordType == 7:
+            self._readClipboardRecord()
+        elif self.recordType == 8:
+            self._readInitialFill()
+        else:
+            #print(".. else",self.recordType)
+            fp.seek(fp.tell()+24)
+
+    def asObject(self):
+        obj = vars(self)
+        newObj = {}
+        for a in (obj):
+            #print("as object",a)
+            if a != "fp" :
+                newObj[a] = obj[a]
+
+        return newObj
+        #print("asObject",vars(self))
+
+    def _readPathRecord(self):
+        #print (".._readPathRecord")
+        self.numPoints = read_fmt("h",self.fp)[0]
+        self.fp.seek(self.fp.tell()+22)
+
+    def _readBezierPoint(self):
+        #print (".._readBezierPoint")
+
+        self.linked = self.recordType in [1, 4]
+
+        self.precedingVert = readPathNumber(self.fp)
+        self.precedingHoriz = readPathNumber(self.fp)
+
+        self.anchorVert = readPathNumber(self.fp)
+        self.anchorHoriz = readPathNumber(self.fp)
+
+        self.leavingVert = readPathNumber(self.fp)
+        self.leavingHoriz = readPathNumber(self.fp)
+
+    def _readClipboardRecord(self):
+
+        self.clipboardTop = readPathNumber(self.fp)
+        self.clipboardLeft = readPathNumber(self.fp)
+        self.clipboardBottom = readPathNumber(self.fp)
+        self.clipboardRight = readPathNumber(self.fp)
+        self.clipboardResolution = readPathNumber(self.fp)
+        self.fp.seek(self.fp.tell()+4)
+
+    def _readInitialFill(self):
+
+        self.initialFill = read_fmt("h",self.fp)[0]
+        self.fp.seek(self.fp.tell()+22)
+        #print (".._readInitialFill")
+
+
+
+
+def decode_vector_mask (data):
+
+    paths = []
+    fp = io.BytesIO(data)
+    version,tag = read_fmt("II", fp)
+    invert = (tag & 0x01) > 0
+    notLink = (tag & (0x01 << 1)) > 0
+    disable = (tag & (0x01 << 2)) > 0
+
+    length = len(data)
+    # I haven't figured out yet why this is 10 and not 8.
+    numRecords = int((length - 10) / 26)
+
+    for i in range(numRecords):
+      record = PathRecord(fp)
+      record.parse()
+      obj = record.asObject()
+      #print ("record",obj)
+      paths.append(obj)
+    #print("decode vector mask",version,invert,notLink,disable,numRecords)
+    return paths
 
 
 def decode(effects):

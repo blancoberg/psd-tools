@@ -23,9 +23,10 @@ _tagged_block_decoders.update({
     TaggedBlock.OBJECT_BASED_EFFECTS_LAYER_INFO:    layer_effects.decode_object_based,
     TaggedBlock.PATTERNS1:                          layer_effects.decode_pattern,
     TaggedBlock.PATTERNS2:                          layer_effects.decode_pattern,
-    TaggedBlock.PATTERNS3:                          layer_effects.decode_pattern
+    TaggedBlock.PATTERNS3:                          layer_effects.decode_pattern,
+    TaggedBlock.VECTOR_MASK_SETTING1:                           layer_effects.decode_vector_mask,
+    TaggedBlock.VECTOR_MASK_SETTING2:                           layer_effects.decode_vector_mask
 })
-
 
 SolidColorSettings = pretty_namedtuple('SolidColorSettings', 'version data')
 MetadataItem = pretty_namedtuple('MetadataItem', 'key copy_on_sheet_duplication descriptor_version data')
