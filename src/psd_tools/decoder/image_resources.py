@@ -158,6 +158,12 @@ def _decode_path_selection_state(data):
         warnings.warn("Ignoring image resource %s" % e)
         return data
 
+@register(ImageResourceID.TIMELINE_INFO)
+def _decode_timeline(data):
+    fp = io.BytesIO(data)
+    version = read_fmt("I", fp)[0]
+    return decode_descriptor(None, fp)
+
 @register(ImageResourceID.LAYER_COMPS)
 def _decode_layer_comps(data):
     fp = io.BytesIO(data)

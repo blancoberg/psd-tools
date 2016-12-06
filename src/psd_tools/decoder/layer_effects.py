@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals, print_function
 import warnings
 import io
 import zlib
+import struct
 
 from psd_tools.decoder import decoders
 from psd_tools.decoder.actions import decode_descriptor, UnknownOSType
@@ -155,12 +156,14 @@ def decode_pattern(patternData):
 
     #print("decode pattern",somehint)
     # repeated for each pattern
-
+    patterns = []
     endOfPatterns = len(patternData)
+    if endOfPatterns == 0:
+        return patterns
     print ("end of pattern",endOfPatterns)
 
     fp = io.BytesIO(patternData)
-    patterns = []
+
 
     #image mode Bitmap = 0; Grayscale = 1; Indexed = 2; RGB = 3; CMYK = 4; Multichannel = 7; Duotone = 8; Lab = 9
     patternLength = read_fmt("I",fp)[0]
@@ -196,9 +199,11 @@ def readPathNumber(fp):
     b1 = arr[0] << 16
     b2 = arr[1] << 8
     b3 = arr[2]
-    b = b1 | b2 | b3
+    b = max(b1,b2,b3)
 
-    return float(a) + float(b / pow(2, 24))
+    nr = float(a)+ float(b / (pow(2, 24)))
+    print("read path number",arr[0],arr[1],arr[2],b1,b2,b3)
+    return nr
 
 class PathRecord:
 
@@ -225,7 +230,7 @@ class PathRecord:
         #self.recordType = @file.readShort()
         fp = self.fp
         self.recordType = read_fmt("h",fp)[0]
-
+        print("record type",self.recordType)
         if self.recordType in [0,3]:
             self._readPathRecord()
         elif self.recordType in [1,2,4,5]:
@@ -270,6 +275,7 @@ class PathRecord:
 
     def _readClipboardRecord(self):
 
+        print("read clipboard record")
         self.clipboardTop = readPathNumber(self.fp)
         self.clipboardLeft = readPathNumber(self.fp)
         self.clipboardBottom = readPathNumber(self.fp)
@@ -298,7 +304,7 @@ def decode_vector_mask (data):
     length = len(data)
     # I haven't figured out yet why this is 10 and not 8.
     numRecords = int((length - 10) / 26)
-
+    print("decode vector mask")
     for i in range(numRecords):
       record = PathRecord(fp)
       record.parse()
