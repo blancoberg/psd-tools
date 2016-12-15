@@ -194,7 +194,7 @@ def decode_pattern(patternData):
 
 def readPathNumber(fp):
     a = fp.read(1)[0] #@readByte()
-
+    a = 0
     arr = fp.read(3)
     b1 = arr[0] << 16
     b2 = arr[1] << 8
@@ -202,7 +202,7 @@ def readPathNumber(fp):
     b = max(b1,b2,b3)
 
     nr = float(a)+ float(b / (pow(2, 24)))
-    print("read path number",arr[0],arr[1],arr[2],b1,b2,b3)
+    #print("read path number",a,b,nr)
     return nr
 
 class PathRecord:
@@ -230,7 +230,7 @@ class PathRecord:
         #self.recordType = @file.readShort()
         fp = self.fp
         self.recordType = read_fmt("h",fp)[0]
-        print("record type",self.recordType)
+        #print("record type",self.recordType)
         if self.recordType in [0,3]:
             self._readPathRecord()
         elif self.recordType in [1,2,4,5]:
@@ -275,7 +275,7 @@ class PathRecord:
 
     def _readClipboardRecord(self):
 
-        print("read clipboard record")
+        #print("read clipboard record")
         self.clipboardTop = readPathNumber(self.fp)
         self.clipboardLeft = readPathNumber(self.fp)
         self.clipboardBottom = readPathNumber(self.fp)
@@ -303,8 +303,8 @@ def decode_vector_mask (data):
 
     length = len(data)
     # I haven't figured out yet why this is 10 and not 8.
-    numRecords = int((length - 10) / 26)
-    print("decode vector mask")
+    numRecords = int((length - 8) / 26)
+    #print("decode vector mask")
     for i in range(numRecords):
       record = PathRecord(fp)
       record.parse()

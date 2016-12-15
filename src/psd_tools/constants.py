@@ -258,10 +258,15 @@ class TaggedBlock(Enum):
         return key in cls._ADJUSTMENT_KEYS
 
     EFFECTS_LAYER = b'lrFX'
+
     TYPE_TOOL_INFO = b'tySh'
+    TYPE_TOOL_ENGINE_DATA = b'EngineData'
+
     UNICODE_LAYER_NAME = b'luni'
     LAYER_ID = b'lyid'
     OBJECT_BASED_EFFECTS_LAYER_INFO = b'lfx2'
+
+    LFXS = b'lfxs'
 
     PATTERNS1 = b'Patt'
     PATTERNS2 = b'Pat2'
@@ -338,8 +343,10 @@ class OSType(Enum):
     CLASS1 = b'type'
     CLASS2 = b'GlbC'
     ALIAS = b'alis'
-    RAW_DATA = b'tdta'
     OBJECT_ARRAY = b'ObAr'
+    ENGINE_DATA = b'EngineData'
+    RAW_DATA = b'tdta'
+
 
 class ReferenceOSType(Enum):
     """

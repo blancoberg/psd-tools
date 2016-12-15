@@ -9,6 +9,7 @@ from psd_tools.constants import OSType, ReferenceOSType, UnitFloatType
 from psd_tools.debug import pretty_namedtuple
 from psd_tools.utils import trimmed_repr
 import warnings
+from parseEngineData import paresr
 
 Descriptor = pretty_namedtuple('Descriptor', 'name classID items')
 Reference = pretty_namedtuple('Reference', 'items')
@@ -49,7 +50,10 @@ class RawData(_RawData):
                     p.pretty(self.value)
 
 
-def get_ostype_decode_func(ostype):
+
+def get_ostype_decode_func(ostype,key=None):
+    #print("get ostype",ostype)
+
     return {
         OSType.REFERENCE:   decode_ref,
         OSType.DESCRIPTOR:  decode_descriptor,
@@ -65,11 +69,14 @@ def get_ostype_decode_func(ostype):
         OSType.CLASS1:      decode_class,
         OSType.CLASS2:      decode_class,
         OSType.ALIAS:       decode_alias,
-        OSType.RAW_DATA:    decode_raw,
         OSType.OBJECT_ARRAY: decode_object_array,
+        OSType.RAW_DATA:    decode_raw
+
     }.get(ostype, None)
 
 def get_reference_ostype_decode_func(ostype):
+
+    #print("get reference ostype",ostype)
     return {
         ReferenceOSType.PROPERTY:   decode_prop,
         ReferenceOSType.CLASS:      decode_class,
@@ -77,7 +84,8 @@ def get_reference_ostype_decode_func(ostype):
         ReferenceOSType.IDENTIFIER: decode_identifier,
         ReferenceOSType.INDEX:      decode_index,
         ReferenceOSType.NAME:       decode_name,
-        ReferenceOSType.ENUMERATED_REFERENCE: decode_enum_ref,
+        ReferenceOSType.ENUMERATED_REFERENCE: decode_enum_ref
+
     }.get(ostype, None)
 
 
@@ -92,7 +100,7 @@ def decode_descriptor(_, fp):
         item_length = read_fmt("I", fp)[0]
         key = fp.read(item_length or 4)
         ostype = fp.read(4)
-
+        #print("list item",ostype)
         decode_ostype = get_ostype_decode_func(ostype)
         if not decode_ostype:
             raise UnknownOSType('Unknown descriptor item of type %r' % ostype)
@@ -188,11 +196,12 @@ def decode_alias(key, fp):
     return Alias(value)
 
 def decode_list(key, fp):
+
     items_count = read_fmt("I", fp)[0]
     items = []
     for _ in range(items_count):
-        ostype = fp.read(4)
 
+        ostype = fp.read(4)
         decode_ostype = get_ostype_decode_func(ostype)
         if not decode_ostype:
             raise UnknownOSType('Unknown list item of type %r' % ostype)
@@ -225,10 +234,14 @@ def decode_name(key, fp):
 
 
 def decode_raw(key, fp):
+    #print("decode raw",key)
     # This is the only thing we know about:
     # The first unsigned int determines the size of the raw data.
     size = read_fmt("I", fp)[0]
     data = fp.read(size)
+    if(key == OSType.ENGINE_DATA):
+        data = paresr(data)
+
     return RawData(data)
 
 def decode_object_array(key, fp):

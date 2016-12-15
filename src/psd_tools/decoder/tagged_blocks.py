@@ -3,8 +3,9 @@ from __future__ import absolute_import, unicode_literals, print_function
 import warnings
 import collections
 import io
+from parseEngineData import paresr
 
-from psd_tools.constants import TaggedBlock, SectionDivider
+from psd_tools.constants import TaggedBlock, SectionDivider , OSType
 from psd_tools.decoder.actions import decode_descriptor, UnknownOSType
 from psd_tools.utils import read_fmt, unpack
 from psd_tools.decoder import decoders, layer_effects
@@ -21,11 +22,13 @@ _tagged_block_decoders.update({
     TaggedBlock.LAYER_ID:                           decoders.single_value("I"), # XXX: there are more fields in docs, but they seem to be incorrect
     TaggedBlock.EFFECTS_LAYER:                      layer_effects.decode,
     TaggedBlock.OBJECT_BASED_EFFECTS_LAYER_INFO:    layer_effects.decode_object_based,
+    TaggedBlock.LFXS:                               layer_effects.decode_object_based,
     TaggedBlock.PATTERNS1:                          layer_effects.decode_pattern,
     TaggedBlock.PATTERNS2:                          layer_effects.decode_pattern,
     TaggedBlock.PATTERNS3:                          layer_effects.decode_pattern,
     TaggedBlock.VECTOR_MASK_SETTING1:                           layer_effects.decode_vector_mask,
     TaggedBlock.VECTOR_MASK_SETTING2:                           layer_effects.decode_vector_mask
+
 })
 
 SolidColorSettings = pretty_namedtuple('SolidColorSettings', 'version data')
@@ -60,6 +63,7 @@ def parse_tagged_block(block):
         warnings.warn("Unknown tagged block (%s)" % block.key)
 
     decoder = _tagged_block_decoders.get(block.key, lambda data: data)
+
     return Block(block.key, decoder(block.data))
 
 
@@ -193,7 +197,15 @@ def _decode_type_tool_object_setting(data):
         return data
 
     try:
+        #print("new type tool")
         text_data = decode_descriptor(None, fp)
+        # check for engineData
+        list = text_data.items
+        #for i in range(len(list)):
+            #if list[i][0] == OSType.ENGINE_DATA:
+                #list[i][1] = paresr(list[i][1].value)
+                #print (list[i][1])
+        #print("text_data",text_data.items)
     except UnknownOSType as e:
         warnings.warn("Ignoring type setting tagged block (%s)" % e)
         return data
@@ -205,6 +217,7 @@ def _decode_type_tool_object_setting(data):
 
     try:
         warp_data = decode_descriptor(None, fp)
+
     except UnknownOSType as e:
         warnings.warn("Ignoring type setting tagged block (%s)" % e)
         return data
