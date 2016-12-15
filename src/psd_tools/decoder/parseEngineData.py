@@ -152,6 +152,7 @@ def propertyWithData(text):
     def parse():
 
         match = re.match(reg,text,flags = re.IGNORECASE)
+
         pushKeyValue(match.group(1), typeMatch(match.group(2)))
 
     return {
@@ -230,8 +231,8 @@ def decodeUTF16Dirty(text):
     i = 2
     decodedText = "";
 
+    #skip every other character ( null values )
     while i<len(text)-1:
-
         decodedText=decodedText+chr(text[i+1])
         i=i+2
 
@@ -249,11 +250,11 @@ def string(text):
 
         # get raw data
         textLine = textLines[currentLine]
-        start = textLine.find(ord("("))+1
-        end = len(textLine)-1
 
-        decodedText = textLine[start:end]
-        decodedText = decodeUTF16Dirty(decodedText)
+        textInsideParanthesis = re.search(b'\(([^()]+)\)',textLine,flags=re.DOTALL)
+        #print("paranthesis",textInsideParanthesis.group(1))
+        #decodedText = decodeUTF16Dirty(textInsideParanthesis.group(0))
+        decodedText = textInsideParanthesis.group(1).decode("utf-16")
         return decodedText
 
 

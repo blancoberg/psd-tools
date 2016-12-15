@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals, print_function
 import warnings
 import collections
 import io
-from parseEngineData import paresr
+from psd_tools.decoder.parseEngineData import paresr
 
 from psd_tools.constants import TaggedBlock, SectionDivider , OSType
 from psd_tools.decoder.actions import decode_descriptor, UnknownOSType

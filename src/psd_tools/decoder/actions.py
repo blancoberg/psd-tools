@@ -9,7 +9,9 @@ from psd_tools.constants import OSType, ReferenceOSType, UnitFloatType
 from psd_tools.debug import pretty_namedtuple
 from psd_tools.utils import trimmed_repr
 import warnings
-from parseEngineData import paresr
+
+from psd_tools.decoder.parseEngineData import paresr
+#from parseEngineData import paresr
 
 Descriptor = pretty_namedtuple('Descriptor', 'name classID items')
 Reference = pretty_namedtuple('Reference', 'items')
